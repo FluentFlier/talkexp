@@ -25,7 +25,7 @@
     renderer.setSize(600, 500);
     document.getElementById('avatarContainer').appendChild(renderer.domElement);
 
-    // Load Ready Player Me avatar (fallback URL)
+    // Load a reliable avatar (publicly hosted on Glitch)
     const loader = new THREE.GLTFLoader();
     loader.load('https://cdn.glitch.com/1b6e6e2d-9e5b-4a0a-9f5e-6b1b6e2d9e5b%2Favatar.glb', (gltf) => {
       console.log('Avatar loaded successfully');
@@ -49,32 +49,33 @@
     }
     animate();
 
-    // Play.ht TTS and basic lip sync
+    // ttsMP3.com TTS and basic lip sync
     const audio = new Audio();
     let mouthOpen = false;
     let lipSyncInterval;
 
     async function speak() {
       const text = document.getElementById('textInput').value || "Hello, I’m your avatar!";
-      console.log('Sending text to Play.ht:', text);
+      console.log('Generating audio with ttsMP3.com:', text);
+
+      // ttsMP3.com requires a POST request to generate audio
       try {
-        const response = await fetch('https://api.play.ht/api/v2/tts', {
+        const response = await fetch('https://ttsmp3.com/makemp3_new.php', {
           method: 'POST',
           headers: {
-            'Authorization': 'Bearer 29939f43e2d2434c862f4808a145074e',
-            'X-USER-ID': 'F5pStLdpl6UIJfcP8VK1NsCXVLu2',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/x-www-form-urlencoded'
           },
-          body: JSON.stringify({
-            text: text,
-            voice: 'larry',  // Free voice, decent tone
-            speed: 0.8       // Slower for a calmer feel
+          body: new URLSearchParams({
+            'msg': text,
+            'lang': 'Joanna',  // A decent, free voice
+            'source': 'ttsmp3'
           })
         });
         const data = await response.json();
-        console.log('Play.ht response:', data);
-        if (data.audioUrl) {
-          audio.src = data.audioUrl;
+        console.log('ttsMP3.com response:', data);
+
+        if (data.URL) {
+          audio.src = data.URL;
           audio.play();
 
           // Basic lip sync
@@ -92,10 +93,11 @@
             clearInterval(lipSyncInterval);
           };
         } else {
-          alert('Error generating audio. Check console for details.');
+          console.error('No audio URL in response:', data);
+          alert('Failed to generate audio. Check console for details.');
         }
       } catch (error) {
-        console.error('Error with Play.ht API:', error);
+        console.error('Error with ttsMP3.com:', error);
         alert('Failed to generate audio. Check console for details.');
       }
     }
